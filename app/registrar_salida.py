@@ -1,19 +1,30 @@
-class CantidadInvalidaError(Exception):
-    def __init__(self):
-        super().__init__("La cantidad debe ser mayor que cero")
+from app.errores import CantidadInvalidaError, ExistenciasInsuficientesError
+
+TIPO_SALIDA = "salida"
 
 
-class ExistenciasInsuficientesError(Exception):
-    def __init__(self):
-        super().__init__("No hay suficientes existencias")
+def _validar_cantidad(cantidad):
+    es_entero = isinstance(cantidad, int) and not isinstance(cantidad, bool)
+    if not es_entero or cantidad <= 0:
+        raise CantidadInvalidaError()
+
+
+def _validar_existencias(producto, cantidad):
+    if cantidad > producto["cantidad_actual"]:
+        raise ExistenciasInsuficientesError()
 
 
 def registrar_salida(producto, cantidad):
-    if not isinstance(cantidad, int) or isinstance(cantidad, bool) or cantidad <= 0:
-        raise CantidadInvalidaError()
-    if cantidad > producto["cantidad_actual"]:
-        raise ExistenciasInsuficientesError()
-    return {
-        "producto": {**producto, "cantidad_actual": producto["cantidad_actual"] - cantidad},
-        "movimiento": {"producto_id": producto["id"], "tipo": "salida", "cantidad": cantidad},
+    _validar_cantidad(cantidad)
+    _validar_existencias(producto, cantidad)
+
+    producto_actualizado = {
+        **producto,
+        "cantidad_actual": producto["cantidad_actual"] - cantidad,
     }
+    movimiento = {
+        "producto_id": producto["id"],
+        "tipo": TIPO_SALIDA,
+        "cantidad": cantidad,
+    }
+    return {"producto": producto_actualizado, "movimiento": movimiento}
