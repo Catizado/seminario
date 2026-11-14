@@ -8,7 +8,12 @@ from app.registrar_salida import (
 
 
 def arroz(cantidad_actual):
-    return {"id": 1, "nombre": "Arroz 500 g", "cantidad_actual": cantidad_actual, "stock_minimo": 5}
+    return {
+        "id": 1,
+        "nombre": "Arroz 500 g",
+        "cantidad_actual": cantidad_actual,
+        "stock_minimo": 5,
+    }
 
 
 # Casos normales
@@ -20,7 +25,11 @@ def test_salida_de_5_con_30_unidades_deja_25():
 
 def test_devuelve_el_movimiento_de_tipo_salida():
     resultado = registrar_salida(arroz(30), 5)
-    assert resultado["movimiento"] == {"producto_id": 1, "tipo": "salida", "cantidad": 5}
+    assert resultado["movimiento"] == {
+        "producto_id": 1,
+        "tipo": "salida",
+        "cantidad": 5,
+    }
 
 
 # Casos límite
@@ -43,12 +52,16 @@ def test_salida_de_existencias_mas_uno_se_rechaza():
 # Casos de error
 
 def test_salida_mayor_que_las_existencias_dice_no_hay_suficientes_existencias():
-    with pytest.raises(ExistenciasInsuficientesError, match="No hay suficientes existencias"):
+    with pytest.raises(
+        ExistenciasInsuficientesError, match="No hay suficientes existencias"
+    ):
         registrar_salida(arroz(25), 30)
 
 
 def test_cantidad_cero_se_rechaza():
-    with pytest.raises(CantidadInvalidaError, match="La cantidad debe ser mayor que cero"):
+    with pytest.raises(
+        CantidadInvalidaError, match="La cantidad debe ser mayor que cero"
+    ):
         registrar_salida(arroz(25), 0)
 
 
