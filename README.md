@@ -1,80 +1,105 @@
 # Inventario para tiendas de barrio
 
-Sistema web de control de inventario para tiendas de barrio (React, Node.js y MySQL).
-Este repositorio contiene la primera funcionalidad del proyecto final, con sus pruebas.
+## 1. Qué es
 
-## Funcionalidad de la semana 5
+Este repositorio contiene HU-04: la función Python `registrar_salida`, que
+calcula la salida de mercancía y el movimiento correspondiente sin modificar
+el producto original.
 
-### Historia de usuario
+El diseño completo del sistema con React, Node.js, MySQL y una API REST está
+previsto, pero todavía no existe en este repositorio. La función actual no
+conecta con una base de datos ni persiste movimientos.
 
-**HU-04.** Como dueño de la tienda, quiero registrar la salida de mercancía para que las existencias reflejen lo que realmente queda. Prioridad: Must.
-
-**Criterio de aceptación**
-
-- Escenario 1. Dado que «Arroz 500 g» tiene 30 unidades, cuando registra una salida de 5, entonces el producto queda con 25 unidades.
-- Escenario 2 (error). Dado que el producto tiene 25 unidades, cuando intenta registrar una salida de 30, entonces no se guarda y aparece «No hay suficientes existencias».
-
-Esta historia protege el requisito RNF-04: las existencias nunca pueden quedar en negativo.
-
-### Contrato
-
-Archivo: `app/registrar_salida.py`
+### Contrato de `registrar_salida`
 
 ```python
 def registrar_salida(producto: dict, cantidad: int) -> dict:
     ...
 ```
 
-**Qué recibe.**
+- **Recibe:** un diccionario de producto con `id`, `nombre`,
+  `cantidad_actual` y `stock_minimo`; `cantidad` debe ser un entero positivo.
+  La implementación valida que el producto sea un diccionario, tenga las
+  claves `id` y `cantidad_actual`, y que las existencias sean un entero no
+  negativo distinto de `bool`. `cantidad` también debe ser un entero distinto
+  de `bool`.
+- **Devuelve:** un diccionario con `producto` (copia con las existencias
+  descontadas) y `movimiento` (`producto_id`, `tipo: "salida"` y `cantidad`).
+- **Errores:** `ProductoInvalidoError` si el producto no cumple la validación;
+  `CantidadInvalidaError` si la cantidad no es un entero positivo; y
+  `ExistenciasInsuficientesError` si la salida supera las existencias.
 
-- `producto`: un diccionario con las claves `id` (int), `nombre` (str), `cantidad_actual` (int, mayor o igual que 0) y `stock_minimo` (int).
-- `cantidad`: un entero mayor que cero con las unidades que salen.
+## 2. Requisitos
 
-**Qué devuelve.** Un diccionario con dos claves:
+- Python 3.10 o superior.
+- pytest 9.2.0, fijado en `requirements.txt`.
 
-- `producto`: una copia del producto con `cantidad_actual` ya descontada.
-- `movimiento`: `{"producto_id": int, "tipo": "salida", "cantidad": int}`, que se debe guardar.
+## 3. Instalación
 
-No modifica el producto que recibe.
+Desde la carpeta del proyecto, crea y activa un entorno virtual e instala las
+dependencias.
 
-**Errores.**
+**Windows PowerShell** (con Python en la ruta indicada):
 
-- `CantidadInvalidaError` con el mensaje «La cantidad debe ser mayor que cero», si la cantidad es 0, negativa, decimal o no es un entero.
-- `ExistenciasInsuficientesError` con el mensaje «No hay suficientes existencias», si la cantidad es mayor que las existencias. La API lo traducirá a un código 409.
-
-**Supuestos.**
-
-- La función solo aplica la regla de negocio. No lee ni escribe en la base de datos; eso lo hace la API en una transacción (ver documento de diseño, ADR-001).
-- Las existencias y la cantidad son números enteros.
-
-**Casos límite.**
-
-- Salida igual a las existencias: es válida y deja el producto en 0.
-- Salida de una sola unidad: es el mínimo permitido.
-- Salida de existencias + 1: es un error.
-- Cantidad 0, negativa o decimal: es un error.
-
-**Ejemplos**
-
-| Entrada | Salida |
-|---|---|
-| `registrar_salida({"id": 1, "nombre": "Arroz 500 g", "cantidad_actual": 30, "stock_minimo": 5}, 5)` | `{"producto": {..., "cantidad_actual": 25}, "movimiento": {"producto_id": 1, "tipo": "salida", "cantidad": 5}}` |
-| `registrar_salida({"id": 1, "nombre": "Arroz 500 g", "cantidad_actual": 25, "stock_minimo": 5}, 25)` | `{"producto": {..., "cantidad_actual": 0}, "movimiento": {"producto_id": 1, "tipo": "salida", "cantidad": 25}}` |
-| `registrar_salida({"id": 1, "nombre": "Arroz 500 g", "cantidad_actual": 25, "stock_minimo": 5}, 30)` | Lanza `ExistenciasInsuficientesError`: «No hay suficientes existencias» |
-
-### Cómo ejecutar las pruebas
-
-Requiere Python 3.9 o superior.
-
+```powershell
+& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
-pip install -r requirements.txt
+
+**Linux o macOS:**
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+## 4. Ejecución
+
+La función se puede importar y ejecutar directamente; no inicia un servidor:
+
+```sh
+python -c "from app.registrar_salida import registrar_salida; p={'id': 1, 'nombre': 'Arroz', 'cantidad_actual': 30, 'stock_minimo': 5}; print(registrar_salida(p, 5))"
+```
+
+## 5. Pruebas
+
+Con el entorno virtual activado, ejecuta:
+
+```sh
 pytest
 ```
 
-## Estructura
+## 6. Estructura
 
+```text
+app/
+  errores.py
+  registrar_salida.py
+tests/
+  test_abuso_producto.py
+  test_registrar_salida.py
+requirements.txt
+pytest.ini
+pyproject.toml
+.env.example
+.gitignore
+bitacora_ia.md
+README.md
 ```
-app/     código de la funcionalidad
-tests/   pruebas
-bitacora_ia.md   bitácora de uso de IA
-```
+
+`.env.example` solo indica que actualmente el proyecto no usa secretos; la
+función no lee variables de entorno.
+
+## 7. Uso de IA
+
+Las interacciones y decisiones de uso de IA están registradas en
+`bitacora_ia.md`.
+
+## 8. Autor y licencia
+
+- **Autor:** Emanuel Catizado Artunduaga.
+- **Institución:** Fundación Escuela Tecnológica de Neiva.
+- **Docente:** Jorge Trujillo.
+- **Licencia:** este repositorio no especifica una licencia.
