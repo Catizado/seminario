@@ -1,6 +1,8 @@
 from app.errores import CantidadInvalidaError, ExistenciasInsuficientesError
 
 TIPO_SALIDA = "salida"
+CLAVE_ID = "id"
+CLAVE_CANTIDAD_ACTUAL = "cantidad_actual"
 
 
 def _validar_cantidad(cantidad):
@@ -10,7 +12,7 @@ def _validar_cantidad(cantidad):
 
 
 def _validar_existencias(producto, cantidad):
-    if cantidad > producto["cantidad_actual"]:
+    if cantidad > producto[CLAVE_CANTIDAD_ACTUAL]:
         raise ExistenciasInsuficientesError()
 
 
@@ -20,10 +22,10 @@ def registrar_salida(producto, cantidad):
 
     producto_actualizado = {
         **producto,
-        "cantidad_actual": producto["cantidad_actual"] - cantidad,
+        CLAVE_CANTIDAD_ACTUAL: producto[CLAVE_CANTIDAD_ACTUAL] - cantidad,
     }
     movimiento = {
-        "producto_id": producto["id"],
+        "producto_id": producto[CLAVE_ID],
         "tipo": TIPO_SALIDA,
         "cantidad": cantidad,
     }
