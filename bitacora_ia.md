@@ -3,7 +3,7 @@
 Proyecto: Sistema web de control de inventario para tiendas de barrio
 Estudiante: Emanuel Catizado Artunduaga
 Funcionalidad: HU-04 Registrar la salida de mercancía
-Asistente usado: Claude (Anthropic), modo chat
+Asistente usado: Claude (Anthropic), modo chat; en la semana 6 también se usó el asistente de VS Code en modo agente, en una rama propia.
 
 ## Entradas
 
@@ -70,12 +70,39 @@ Asistente usado: Claude (Anthropic), modo chat
 - **Verificación:** revisé que el contrato y las 10 pruebas se cumplen con la función sola.
 - **Commit relacionado:** Refactor de registrar_salida: errores aparte, validaciones con nombre y constante TIPO_SALIDA (69861a3)
 
+### Entrada 8
+
+- **Fecha:** 2026-11-14
+- **Prompt o sugerencia:** pedí al asistente de VS Code una segunda revisión del código, sin corregir nada, con una tabla de archivo, línea, problema, categoría y severidad, separando problemas seguros de sospechas. Marcó como seguro la falta de anotaciones de tipo (`registrar_salida.py:17`), como sospecha que `producto` no se valida (líneas 12 a 26) y como inconsistencia que el README describía React, Node.js y MySQL. Dijo que no había otros problemas.
+- **Decisión:** Aceptada con cambios
+- **Por qué:** acepté los tres hallazgos como reales. Traté la sospecha de `producto` como real, aunque la IA la dejó fuera del contrato, porque mi modelo de datos dice que `cantidad_actual` es un entero y una entrada inválida rompe la función con `TypeError` o `KeyError`. Además agregué dos hallazgos que la IA no encontró: `pytest>=7` sin versión fijada y el patrón `.env.*` del `.gitignore`, que habría bloqueado el `.env.example`.
+- **Verificación:** antes de cambiar nada corrí `pytest` (10 pasaron), `ruff` (9 avisos) y `pip-audit`. Abrí la versión anterior de `registrar_salida.py` y confirmé que no había ninguna comprobación sobre `producto`. Revisé el historial de Git y no encontré claves.
+- **Commit relacionado:** Agrega informe de revisión de seguridad (11caf17)
+
+### Entrada 9
+
+- **Fecha:** 2026-11-14
+- **Prompt o sugerencia:** para corregir la validación de `producto`, el primer prompt que preparé con Claude reutilizaba el error de cantidad inválida. Lo cambié antes de enviarlo: pedí un error nuevo, `ProductoInvalidoError`, y una función `_validar_producto` que se llame primero en `registrar_salida`.
+- **Decisión:** Aceptada con cambios
+- **Por qué:** reutilizar el error de cantidad habría mostrado «La cantidad debe ser mayor que cero» cuando el problema es el producto. La validación exige un diccionario con `id` y `cantidad_actual`, y que las existencias sean un entero (sin contar booleanos) mayor o igual que 0. Esto cambia un comportamiento: unas existencias negativas antes daban `ExistenciasInsuficientesError` y ahora dan `ProductoInvalidoError`. Por eso agregué pruebas nuevas.
+- **Verificación:** `pytest` pasó con 19 pruebas (las 10 anteriores y 9 nuevas en `tests/test_abuso_producto.py`) y `ruff` quedó sin avisos.
+- **Commit relacionado:** Valida producto en registrar_salida y agrega pruebas de abuso (8234055)
+
+### Entrada 10
+
+- **Fecha:** 2026-11-14
+- **Prompt o sugerencia:** puse al asistente de VS Code en modo agente, en la rama `semana6-revision`, con instrucciones delimitadas y un commit por cambio: fijar `pytest` (965141f), constantes para las claves del producto (2683abd), anotaciones de tipo (8895334), la validación de `producto` (8234055), docstrings (a35438c) y el README (2a69728). Le prohibí modificar las pruebas existentes.
+- **Decisión:** Aceptada
+- **Por qué:** cada cambio quedó en su propio commit y puedo explicarlo, y la rama protege `main` si algo sale mal.
+- **Verificación:** `pytest` pasó después de cada cambio. Revisé el diff entre `main` y la rama: lo único que cambió en `tests/test_registrar_salida.py` es el formato de las líneas largas (E501, commit 9579a89), sin cambiar ningún `assert` ni valor.
+- **Commit relacionado:** Agrega docstrings (a35438c)
+
 ## Resumen
 
 | Decisión | Cantidad |
 |---|---|
-| Aceptadas | 3 |
-| Aceptadas con cambios | 1 |
+| Aceptadas | 4 |
+| Aceptadas con cambios | 3 |
 | Rechazadas | 3 |
 
 ## Errores que atraparon las pruebas
