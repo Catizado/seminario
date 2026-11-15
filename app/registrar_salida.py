@@ -16,7 +16,7 @@ def _validar_existencias(producto, cantidad):
         raise ExistenciasInsuficientesError()
 
 
-def registrar_salida(producto, cantidad):
+def registrar_salida(producto: dict, cantidad: int) -> dict:
     _validar_cantidad(cantidad)
     _validar_existencias(producto, cantidad)
 
