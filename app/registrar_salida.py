@@ -10,6 +10,20 @@ CLAVE_CANTIDAD_ACTUAL = "cantidad_actual"
 
 
 def _validar_producto(producto):
+    """Valida las claves requeridas y las existencias del producto.
+
+    Args:
+        producto: Valor que debe ser un diccionario con ``id`` y
+            ``cantidad_actual``.
+
+    Returns:
+        None: Si el producto cumple las reglas de validación.
+
+    Raises:
+        ProductoInvalidoError: Si el valor no es un diccionario, le falta una
+            clave requerida o ``cantidad_actual`` no es un entero no negativo
+            distinto de bool.
+    """
     if not isinstance(producto, dict):
         raise ProductoInvalidoError()
 
@@ -36,6 +50,22 @@ def _validar_existencias(producto, cantidad):
 
 
 def registrar_salida(producto: dict, cantidad: int) -> dict:
+    """Calcula la salida de existencias y el movimiento correspondiente.
+
+    Args:
+        producto: Diccionario con ``id`` y ``cantidad_actual`` entero no
+            negativo.
+        cantidad: Número entero positivo de unidades que salen.
+
+    Returns:
+        Diccionario con una copia actualizada del producto y el movimiento.
+
+    Raises:
+        ProductoInvalidoError: Si el producto no cumple la validación.
+        CantidadInvalidaError: Si ``cantidad`` no es un entero positivo
+            distinto de bool.
+        ExistenciasInsuficientesError: Si la salida supera las existencias.
+    """
     _validar_producto(producto)
     _validar_cantidad(cantidad)
     _validar_existencias(producto, cantidad)
