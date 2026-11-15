@@ -6,3 +6,8 @@ class CantidadInvalidaError(Exception):
 class ExistenciasInsuficientesError(Exception):
     def __init__(self):
         super().__init__("No hay suficientes existencias")
+
+
+class ProductoInvalidoError(Exception):
+    def __init__(self):
+        super().__init__("El producto no es válido")

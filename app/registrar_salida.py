@@ -1,8 +1,27 @@
-from app.errores import CantidadInvalidaError, ExistenciasInsuficientesError
+from app.errores import (
+    CantidadInvalidaError,
+    ExistenciasInsuficientesError,
+    ProductoInvalidoError,
+)
 
 TIPO_SALIDA = "salida"
 CLAVE_ID = "id"
 CLAVE_CANTIDAD_ACTUAL = "cantidad_actual"
+
+
+def _validar_producto(producto):
+    if not isinstance(producto, dict):
+        raise ProductoInvalidoError()
+
+    if CLAVE_ID not in producto or CLAVE_CANTIDAD_ACTUAL not in producto:
+        raise ProductoInvalidoError()
+
+    cantidad_actual = producto[CLAVE_CANTIDAD_ACTUAL]
+    es_entero = isinstance(cantidad_actual, int) and not isinstance(
+        cantidad_actual, bool
+    )
+    if not es_entero or cantidad_actual < 0:
+        raise ProductoInvalidoError()
 
 
 def _validar_cantidad(cantidad):
@@ -17,6 +36,7 @@ def _validar_existencias(producto, cantidad):
 
 
 def registrar_salida(producto: dict, cantidad: int) -> dict:
+    _validar_producto(producto)
     _validar_cantidad(cantidad)
     _validar_existencias(producto, cantidad)
 
